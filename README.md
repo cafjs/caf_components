@@ -59,7 +59,7 @@ bind our sandwich in `$` with the name `mySandwich`.
 
 * A node.js module to load the description and code. Node.js module loading system binds a variable called `module` to the object representing the current module. We use the `require` method on that object to load resources in the same directory as `main.js`.
 
-* A callback that returns the original (or newly created) `$` context that contains the new sandwitch.
+* A callback that returns the original (or newly created) `$` context that contains the new sandwich.
 
 and the JSON description `sandwich.json` contains:
 
@@ -75,7 +75,7 @@ and the JSON description `sandwich.json` contains:
 
 `name` is a default name to register a new sandwich in the local context `$`.
 
-`module` is the name of the module that provides `newInstance`, i.e., the factory implementation for sandwitches. 
+`module` is the name of the module that provides `newInstance`, i.e., the factory implementation for sandwiches. 
 
 Sometimes a module defines many factory methods. We select one with a `#` so `sandwich#rubin` refers to `require("sandwich").rubin.newInstance()`
 
