@@ -1,0 +1,22 @@
+{
+    "name": "caf_components",
+    "description": "Cloud Assistant Framework Components",
+    "version": "0.2.0",
+    "author": "Antonio Lain <antlai@cafjs.com>",
+    "dependencies": {
+        "async" : ">=0.1.9"
+    },
+    "devDependencies": {
+        "nodeunit" : ">=0.9"
+    },
+    "main": "index",
+    "homepage": "http://www.cafjs.com",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/cafjs/caf_components.git"
+    },
+    "scripts": {
+        "test": "node ./node_modules/.bin/nodeunit"
+    },
+    "engines": { "node": ">= 0.8.1 " }
+}
