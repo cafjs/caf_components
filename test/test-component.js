@@ -15,3 +15,16 @@ exports.helloworld1 = function (test) {
                   });
 };
 
+exports.rename = function (test) {
+    test.expect(3);
+    hello.load(null, {name: 'newHello'}, 'hello1.json', null, function(err, $) {
+                      test.ifError(err);
+                      console.log($);
+                      test.equal(typeof($.newHello), 'object',
+                                 'Cannot create hello');
+                      test.equal($.newHello.getMessage(), "hola mundo");
+                      test.done();
+                  });
+};
+
+
