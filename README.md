@@ -38,7 +38,27 @@ A component exports an asynchronous factory method called `newInstance`. For exa
         }           
     }
 
-In most cases `newInstance` is not directly called by your code. Instead, a JSON description file (`sandwich.json`) describes your components, and CAF does the rest. For example, in the same directory, `main.js`:
+In most cases `newInstance` is not directly called by your code. Instead, a JSON description file (`sandwich.json`) describes your components, and CAF does the rest. For example, `sandwich.json` contains:
+
+    {
+      "module" : "./sandwich",
+      "name" : "defaultNameForSandwich",
+      "description": "An item of food consisting of two pieces of bread with meat, cheese, or other filling between them, eaten as a light meal.\n Properties:\n  <bread> {string} Type of bread.\n  <fillings> {Array.<string>} Ingredients.\n"
+      "env" : {
+          bread : "rye",
+          fillings: [ "ham", "cheese"] 
+      }
+    }
+
+`name` is a default name to register a new sandwich in the local context `$`.
+
+`module` is the name of the module that provides `newInstance`, i.e., the factory implementation for sandwiches. 
+
+Sometimes a module defines many factory methods. We select one with a `#` so `sandwich#rubin` refers to `require("sandwich").rubin.newInstance()`
+
+`env` is an object with properties to configure our sandwich. 
+
+and in the same directory, `main.js`:
 
     var caf_comp = require('caf_components');
     var $ = null; //  or an already initialized context
@@ -61,30 +81,10 @@ bind our sandwich in `$` with the name `mySandwich`.
 
 * A callback that returns the original (or newly created) `$` context that contains the new sandwich.
 
-and the JSON description `sandwich.json` contains:
-
-    {
-      "module" : "./sandwich",
-      "name" : "defaultNameForSandwich",
-      "description": "An item of food consisting of two pieces of bread with meat, cheese, or other filling between them, eaten as a light meal.\n Properties:\n  <bread> {string} Type of bread.\n  <fillings> {Array.<string>} Ingredients.\n"
-      "env" : {
-          bread : "rye",
-          fillings: [ "ham", "cheese"] 
-      }
-    }
-
-`name` is a default name to register a new sandwich in the local context `$`.
-
-`module` is the name of the module that provides `newInstance`, i.e., the factory implementation for sandwiches. 
-
-Sometimes a module defines many factory methods. We select one with a `#` so `sandwich#rubin` refers to `require("sandwich").rubin.newInstance()`
-
-`env` is an object with properties to configure our sandwich. 
-
 
 ### Hierarchy
 
-Where is the hierarchy?  For example, in file `lunchBox.json`:
+How to create a hierarchy of components?  For example, in file `lunchBox.json`:
 
      {
         "module": "lunch",

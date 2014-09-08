@@ -18,6 +18,15 @@ exports.newInstance = function($, spec, cb) {
         that.getMessage = function() {
             return spec.env.message;
         };
+
+        that.getOtherMessage = function() {
+            return spec.env.otherMessage || "";
+        };
+
+        that.getNumber = function() {
+            return spec.env.number;
+        };
+
         console.log(that);
         cb(null, that);
     } catch (err) {

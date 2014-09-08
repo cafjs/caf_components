@@ -1,0 +1,8 @@
+{
+    "name": "hello",
+    "env" : {
+        "message" : "adios mundo",
+        "otherMessage": "hello mundo",
+        "number": null
+    }
+}

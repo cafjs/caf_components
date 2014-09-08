@@ -27,4 +27,23 @@ exports.rename = function (test) {
                   });
 };
 
+exports.extend = function (test) {
+    test.expect(5);
+    hello.load(null, {name: 'newHello'}, 'hello2.json', null, function(err, $) {
+                   test.ifError(err);
+                   console.log($);
+                   test.equal(typeof($.newHello), 'object',
+                              'Cannot create hello');
+                   // changed
+                   test.equal($.newHello.getMessage(), "adios mundo");
+                   test.equal($.newHello.getNumber(), null);
+                   // added
+                   test.equal($.newHello.getOtherMessage(), "hello mundo");
+                   test.done();
+               });
+
+
+
+};
+
 
