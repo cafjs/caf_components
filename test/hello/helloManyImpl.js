@@ -1,7 +1,6 @@
 var caf_comp = require('../../index');
 
-var genComponent =  caf_comp.gen_component;
-
+var genContainer =  caf_comp.gen_container;
 
 /**
  * Factory method to create a test component.
@@ -10,19 +9,10 @@ var genComponent =  caf_comp.gen_component;
  */
 exports.newInstance = function($, spec, cb) {
     try {
-
-        console.log("www");
-        console.log($);
-        var that = genComponent.constructor($, spec);
-
+        var that = genContainer.constructor($, spec);
         that.getMessage = function() {
             return spec.env.message;
         };
-
-        that.getOtherMessage = function() {
-            return spec.env.otherMessage || "";
-        };
-
         that.getNumber = function() {
             return spec.env.number;
         };
@@ -30,8 +20,6 @@ exports.newInstance = function($, spec, cb) {
         that.getLanguage = function() {
             return spec.env.language;
         };
-
-        console.log(that);
         cb(null, that);
     } catch (err) {
         console.log('got err' + err);
