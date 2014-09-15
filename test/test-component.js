@@ -91,6 +91,10 @@ exports.shutdown = function(test) {
                                     },
                                     function(cb) {
                                         $.newHello.__ca_shutdown__(null, cb);
+                                    },
+                                    function(cb) {
+                                        //idempotent
+                                        hello.__ca_shutdown__(null, cb);
                                     }
                                 ], function(err, data) {
                                     test.ifError(err);
