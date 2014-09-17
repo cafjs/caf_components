@@ -1,0 +1,52 @@
+{
+    "name": "hello",
+    "module" : "./helloManyImpl",
+    "description" : "Hello test",
+    "env" : {
+        "language" : "process.env.MY_LANGUAGE||spanish",
+        "message" : "hola mundo",
+        "number" : 7,
+        "flag" : true,
+        "maxRetries" : 10,
+        "retryDelay" : 1000
+    },
+    "components":[
+        {
+            "name": "h1",
+            "module" : "./helloImpl",
+            "description" : "Child1",
+            "env" : {
+                "language" : "$._.env.language",
+                "message" : "child1",
+                "number" : 8,
+                "flag" : true
+            }
+        },
+        {
+            "name": "h2",
+            "module" : "./helloManyImpl",
+            "description" : "Child2",
+            "env" : {
+                "language" : "$._.env.language",
+                "message" : "child2",
+                "number" : 9,
+                "flag" : true,
+                "maxRetries" :"$._.env.maxRetries",
+                "retryDelay" : "$._.env.retryDelay"
+            },
+            "components": [
+                {
+                    "name": "h21",
+                    "module" : "./helloImpl",
+                    "description" : "Child21",
+                    "env" : {
+                        "language" : "$._.env.language",
+                        "message" : "child21",
+                        "number" : 10,
+                        "flag" : true
+                    }
+                }
+            ]
+        }
+    ]
+}

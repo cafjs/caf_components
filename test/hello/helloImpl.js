@@ -11,8 +11,6 @@ var genComponent =  caf_comp.gen_component;
 exports.newInstance = function($, spec, cb) {
     try {
 
-        console.log("www");
-        console.log($);
         var that = genComponent.constructor($, spec);
 
         that.getMessage = function() {
@@ -30,8 +28,6 @@ exports.newInstance = function($, spec, cb) {
         that.getLanguage = function() {
             return spec.env.language;
         };
-
-        console.log(that);
         cb(null, that);
     } catch (err) {
         console.log('got err' + err);

@@ -6,11 +6,8 @@ exports.helloworld = function (test) {
     test.expect(3);
     hello.load(null, null, 'hello1.json', null, function(err, $) {
                       test.ifError(err);
-                      console.log($);
                       test.equal(typeof($.hello), 'object',
                                  'Cannot create hello');
-                      console.log($.hello);
-                      console.log($.hello.getMessage());
                       test.equal($.hello.getMessage(), "hola mundo");
                       test.done();
                   });
@@ -20,7 +17,6 @@ exports.rename = function (test) {
     test.expect(3);
     hello.load(null, {name: 'newHello'}, 'hello1.json', null, function(err, $) {
                       test.ifError(err);
-                      console.log($);
                       test.equal(typeof($.newHello), 'object',
                                  'Cannot create hello');
                       test.equal($.newHello.getMessage(), "hola mundo");
@@ -32,7 +28,6 @@ exports.extend = function (test) {
     test.expect(5);
     hello.load(null, {name: 'newHello'}, 'hello2.json', null, function(err, $) {
                    test.ifError(err);
-                   console.log($);
                    test.equal(typeof($.newHello), 'object',
                               'Cannot create hello');
                    // changed
@@ -48,7 +43,6 @@ exports.hierarchy = function(test) {
     test.expect(16);
     hello.load(null, {name: 'newHello'}, 'hello3.json', null, function(err, $) {
                    test.ifError(err);
-                   console.log($);
                    // top component
                    test.equal(typeof($.newHello), 'object',
                               'Cannot create hello');
@@ -129,4 +123,41 @@ exports.manyDirs = function(test) {
                    test.equal(h1.getLanguage(), 'spanish');
                    test.done();
                });
+};
+
+exports.properties = function(test) {
+    test.expect(9);
+    async.series([
+                     function(cb) {
+                         hello.load(null, {name: 'newHello'}, 'hello4.json',
+                                    null, function(err, $) {
+                                        test.ifError(err);
+                                        test.equal(typeof($.newHello), 'object',
+                                                   'Cannot create hello');
+                                        var h1 = $.newHello.$.h1;
+                                        test.equal(typeof(h1), 'object',
+                                                   'Cannot create h1');
+                                        test.equal(h1.getLanguage(), 'spanish');
+                                        process.env['MY_LANGUAGE'] = 'french';
+                                        cb(err, $);
+                                    });
+                     },
+                      function(cb) {
+                         hello.load(null, {name: 'newHello'}, 'hello4.json',
+                                    null, function(err, $) {
+                                        test.ifError(err);
+                                        test.equal(typeof($.newHello), 'object',
+                                                   'Cannot create hello');
+                                        var h1 = $.newHello.$.h1;
+                                        test.equal(typeof(h1), 'object',
+                                                   'Cannot create h1');
+                                        test.equal(h1.getLanguage(), 'french');
+                                        cb(err, $);
+                                    });
+                      }
+                 ], function(err, data) {
+                     test.ifError(err);
+                     delete process.env['MY_LANGUAGE'];
+                     test.done();
+                 });
 };
