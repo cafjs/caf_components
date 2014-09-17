@@ -1,5 +1,6 @@
 var async = require('async');
 var hello = require('./hello/main.js');
+var bye = require('./bye/main.js');
 
 exports.helloworld = function (test) {
     test.expect(3);
@@ -106,5 +107,26 @@ exports.shutdown = function(test) {
                                     test.equal(h21.__ca_isShutdown__, true);
                                     test.done();
                                 });
+               });
+};
+
+exports.manyDirs = function(test) {
+    var byeModule = bye.getModule();
+    test.expect(8);
+    hello.load(null, {name: 'newHello'}, 'hello3.json', [byeModule],
+               function(err, $) {
+                   test.ifError(err);
+                   // top component
+                   test.equal(typeof($.newHello), 'object',
+                              'Cannot create hello');
+                   test.equal($.newHello.getMessage(), "hola mundo");
+                   test.equal($.newHello.getNumber(), 7);
+                   // modified component
+                   var h1 = $.newHello.$.h1;
+                   test.equal(typeof(h1), 'object', 'Cannot create h1');
+                   test.equal(h1.getMessage(), 'BYE:byeChild1');
+                   test.equal(h1.getNumber(), 8);
+                   test.equal(h1.getLanguage(), 'spanish');
+                   test.done();
                });
 };

@@ -7,3 +7,7 @@ exports.load = function($, spec, name, modules, cb) {
     caf_comp.load($, spec, name, modules, cb);
 };
 
+exports.getModule = function() {
+    return module;
+};
+

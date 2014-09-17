@@ -1,0 +1,12 @@
+{
+    "name": "hello",
+    "components" : [
+        {
+            "name": "h1",
+            "module" : "./byeImpl",
+            "env": {
+                "message" : "byeChild1"
+            }
+        }
+    ]
+}
