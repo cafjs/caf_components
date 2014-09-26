@@ -1,0 +1,41 @@
+{
+    "name": "topDynamic",
+    "module" : "./dynamicSup",
+    "description" : "Supervisor for Dynamic",
+    "env" : {
+        "dieDelay": -1,
+        "interval": 100,
+        "MTBF" : "process.env.MTBF||500",
+        "numFailures": "process.env.numFailures || 100",
+        "maxRetries" : 10,
+        "retryDelay" : 100
+    },
+    "components":[
+        {
+            "name": "h1",
+            "module" : "./dynamicImpl",
+            "description" : "Child1",
+            "env" : {
+                "message" : "child1",
+                "number" : 8,
+                "doNotDie" : true,
+                "MTBF" : "$._.env.MTBF"
+            }
+        },
+        {
+            "name": "h2",
+            "module" : "./dynamicManyImpl",
+            "description" : "Child2",
+            "env" : {
+                "message" : "child2",
+                "number" : 9,
+                "doNotDie" : true,
+                "MTBF" : "$._.env.MTBF",
+                "maxRetries" :"$._.env.maxRetries",
+                "retryDelay" : "$._.env.retryDelay"
+            },
+            "components": [
+            ]
+        }
+    ]
+}
