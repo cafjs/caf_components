@@ -33,9 +33,7 @@
                 "MTBF" : "$._.env.MTBF",
                 "maxRetries" :"$._.env.maxRetries",
                 "retryDelay" : "$._.env.retryDelay"
-            },
-            "components": [
-            ]
+            }
         }
     ]
 }

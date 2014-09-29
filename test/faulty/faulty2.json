@@ -1,0 +1,77 @@
+{
+    "name": "topFaulty",
+    "module" : "./faultySup",
+    "description" : "Supervisor for faulty",
+    "env" : {
+        "dieDelay": -1,
+        "interval": 10000,
+        "MTBF" : "process.env.MTBF||500",
+        "numFailures": 0,
+        "maxRetries" : 5,
+        "retryDelay" : 100
+    },
+    "components":[
+        {
+            "name": "log",
+            "module" : "./plug_log",
+            "description" : "Logger",
+            "env" : {
+                "logLevel" : "TRACE"
+            }
+        },
+        {
+            "name": "h1",
+            "module" : "./faultyImpl",
+            "description" : "Child1",
+            "env" : {
+                "message" : "child1",
+                "number" : 8,
+                "MTBF" : "$._.env.MTBF"
+            }
+        },
+        {
+            "name": "h2",
+            "module" : "./faultyManyImpl",
+            "description" : "Child2",
+            "env" : {
+                "message" : "child2",
+                "number" : 9,
+                "MTBF" : "$._.env.MTBF",
+                "maxRetries" :"$._.env.maxRetries",
+                "retryDelay" : "$._.env.retryDelay"
+            },
+            "components": [
+                {
+                    "name": "h21",
+                    "module" : "./faultyImpl",
+                    "description" : "Child21",
+                    "env" : {
+                        "message" : "child21",
+                        "number" : 10,
+                        "MTBF" : "$._.env.MTBF"
+                    }
+                },
+                {
+                    "name": "h22",
+                    "module" : "./reallyDeadImpl",
+                    "description" : "Child22",
+                    "env" : {
+                        "message" : "child22",
+                        "number" : 11,
+                        "MTBF" : "$._.env.MTBF"
+                    }
+                },
+                {
+                    "name": "h23",
+                    "module" : "./faultyImpl",
+                    "description" : "Child23",
+                    "env" : {
+                        "message" : "child23",
+                        "number" : 12,
+                        "MTBF" : "$._.env.MTBF"
+                    }
+                }
+            ]
+        }
+    ]
+}

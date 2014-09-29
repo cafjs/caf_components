@@ -16,7 +16,7 @@ exports.newInstance = function($, spec, cb) {
             if (err) {
                 console.log('Fatal error:' + err);
             } else {
-                console.log('Check OK:' + JSON.stringify(res));
+                //console.log('Check OK:' + JSON.stringify(res));
             }
         };
 

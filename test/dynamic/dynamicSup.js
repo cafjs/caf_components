@@ -16,7 +16,7 @@ exports.newInstance = function($, spec, cb) {
             if (err) {
                 console.log('Fatal error:' + err);
             } else {
-                console.log('Check OK:' + JSON.stringify(res));
+                //console.log('Check OK:' + JSON.stringify(res));
             }
         };
 
@@ -25,8 +25,8 @@ exports.newInstance = function($, spec, cb) {
         };
 
         that.stillFaulty = function() {
-            console.log("StillFaulty count:" + count + " maxFailures:" +
-                        spec.env.numFailures);
+//            console.log("StillFaulty count:" + count + " maxFailures:" +
+//                        spec.env.numFailures);
             return (count < spec.env.numFailures);
         };
 

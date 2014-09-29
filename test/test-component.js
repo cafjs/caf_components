@@ -217,6 +217,8 @@ var checkSup = function(test, err, $, waitMSec, cb) {
                    cb(null);
                }, waitMSec);
 };
+
+
 exports.supervisor = function(test) {
     test.expect(24);
     var context;
@@ -237,6 +239,16 @@ exports.supervisor = function(test) {
                  });
 };
 
+
+exports.unrecoverableChild = function(test) {
+    test.expect(1);
+    faulty.load(null, {name: 'newHello'}, 'faulty2.json', null,
+                function(err, $) {
+                    test.ok(err && (typeof err === 'object'),
+                            'no error detected in unrecoverableChild');
+                    test.done();
+                });
+};
 
 
 var MTBF = 500;
@@ -325,14 +337,15 @@ exports.dynamic = function(test) {
                      },
                      function(cb) {
                          async.eachSeries(DYN_ADD, function(x, cb1) {
-                                              h2.__createChild__(null,
+                                              h2.__ca_createChild__(null,
                                                                  specDyn(x),
                                                                  cb1);
                                           }, cb);
                      },
                      function(cb) {
                          async.eachSeries(DYN_RM, function(x, cb1) {
-                                              h2.__deleteChild__(null, x, cb1);
+                                              h2.__ca_deleteChild__(null, x,
+                                                                    cb1);
                                           }, cb);
                      },
                      function(cb) {
@@ -346,3 +359,4 @@ exports.dynamic = function(test) {
                      test.done();
                  });
 };
+
