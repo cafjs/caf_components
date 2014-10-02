@@ -1,0 +1,53 @@
+{
+    "name": "hello",
+    "module" : "./helloManyImpl",
+    "description" : "Hello test",
+    "env" : {
+        "language" : "process.env.MY_LANGUAGE||spanish",
+        "maxRetries" : 10,
+        "retryDelay" : 1000
+    },
+    "components":[
+        {
+            "name": "plug",
+            "module" : "./plugImpl",
+            "description" : "Child1",
+            "env" : {
+                "language" : "$._.env.language",
+                "message" : "child1",
+                "number" : 8,
+                "flag" : true
+            }
+        },
+        {
+            "name": "h2",
+            "module" : "./helloManyImpl",
+            "description" : "Child2",
+            "env" : {
+                "maxRetries" :"$._.env.maxRetries",
+                "retryDelay" : "$._.env.retryDelay"
+            },
+            "components": [
+                {
+                    "name": "plugCA",
+                    "module" : "./plugCAImpl",
+                    "description" : "Child21",
+                    "env" : {
+                        "CAName" : "whatever",
+                        "maxRetries" :"$._.env.maxRetries",
+                        "retryDelay" : "$._.env.retryDelay"
+                    },
+                    "components": [
+                        {
+                            "name": "proxy",
+                            "module" : "./proxyImpl",
+                            "description" : "Child211",
+                            "env" : {
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

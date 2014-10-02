@@ -3,6 +3,7 @@ var hello = require('./hello/main.js');
 var bye = require('./bye/main.js');
 var faulty = require('./faulty/main.js');
 var dynamic = require('./dynamic/main.js');
+var proxy =  require('./proxy/main.js');
 
 exports.helloworld = function (test) {
     test.expect(3);
@@ -360,3 +361,14 @@ exports.dynamic = function(test) {
                  });
 };
 
+exports.proxy = function (test) {
+    test.expect(3);
+    proxy.load(null, {name: 'newHello'}, 'proxy1.json', null, function(err, $) {
+                   test.ifError(err);
+                   var pr = $.newHello.$.h2.$.plugCA.$.proxy;
+                   test.equal(typeof(pr), 'object',
+                              'Cannot create proxy');
+                   test.equal(pr.getMessage(), "whatever:child1");
+                   test.done();
+               });
+};
