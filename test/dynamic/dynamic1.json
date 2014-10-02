@@ -5,8 +5,8 @@
     "env" : {
         "dieDelay": -1,
         "interval": 500,
-        "MTBF" : "process.env.MTBF||500",
-        "numFailures": "process.env.numFailures || 100",
+        "MTBF" : "process.env.MTBF||200",
+        "numFailures": "process.env.numFailures || 50",
         "maxRetries" : 10,
         "retryDelay" : 100
     },
