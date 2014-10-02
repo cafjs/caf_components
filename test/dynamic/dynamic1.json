@@ -4,7 +4,7 @@
     "description" : "Supervisor for Dynamic",
     "env" : {
         "dieDelay": -1,
-        "interval": 100,
+        "interval": 500,
         "MTBF" : "process.env.MTBF||500",
         "numFailures": "process.env.numFailures || 100",
         "maxRetries" : 10,
