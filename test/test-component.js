@@ -111,7 +111,7 @@ exports.shutdown = function(test) {
 
 exports.manyDirs = function(test) {
     var byeModule = bye.getModule();
-    test.expect(8);
+    test.expect(11);
     hello.load(null, {name: 'newHello'}, 'hello3.json', [byeModule],
                function(err, $) {
                    test.ifError(err);
@@ -126,6 +126,14 @@ exports.manyDirs = function(test) {
                    test.equal(h1.getMessage(), 'BYE:byeChild1');
                    test.equal(h1.getNumber(), 8);
                    test.equal(h1.getLanguage(), 'spanish');
+                   // added component
+                   var h3 = $.newHello.$.h3;
+                   test.equal(typeof(h3), 'object', 'Cannot create h3');
+                   test.equal(h3.getMessage(), 'BYE:child3');
+                   // add and delete component
+                   var h4 = $.newHello.$.h4;
+                   test.ok(h4 === undefined, 'added and deleted but still' +
+                           ' there');
                    test.done();
                });
 };

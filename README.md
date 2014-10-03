@@ -8,8 +8,6 @@ See http://www.cafjs.com
 
 [![Build Status](http://ci.cafjs.com/github.com/cafjs/caf_components/status.svg?branch=master)](http://ci.cafjs.com/github.com/cafjs/caf_components)
 
-*** THIS IS AN ONGOING  REFACTORING OF CAF, NOT WORKING YET ***
-
 
 This library creates and manages a hierarchy of asynchronous components. It has no dependencies with CAF core or libs, so that it can easily integrate with other Javascript frameworks. It was inspired by the SmartFrog (Java) framework http://www.smartfrog.org .
 

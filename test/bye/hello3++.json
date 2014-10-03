@@ -7,6 +7,35 @@
             "env": {
                 "message" : "byeChild1"
             }
+        },
+        {
+            "name" : "h2"
+        },
+        {
+            "name": "h3",
+            "module" : "./byeImpl",
+            "description" : "Child3",
+            "env" : {
+                "language" : "$._.env.language",
+                "message" : "child3",
+                "number" : 11,
+                "flag" : true
+            }
+        },
+        {
+            "name": "h4",
+            "module" : "./byeImpl",
+            "description" : "Child4",
+            "env" : {
+                "language" : "$._.env.language",
+                "message" : "child4",
+                "number" : 11,
+                "flag" : true
+            }
+        },
+        {
+            "name": "h4",
+            "module" : null
         }
     ]
 }
