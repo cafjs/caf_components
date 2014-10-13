@@ -5,6 +5,7 @@
     "env" : {
         "dieDelay": -1,
         "interval": 100,
+        "maxHangRetries": 10,
         "MTBF" : "process.env.MTBF||500",
         "numFailures": "process.env.numFailures || 100",
         "maxRetries" : 10,
