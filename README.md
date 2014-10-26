@@ -16,7 +16,7 @@ This library creates and manages a hierarchy of asynchronous components. It has 
 A component exports an asynchronous factory method called `newInstance`. For example, in a file called `sandwich.js`, we have:
 
     /**
-     * Creates a sandwich.
+     * Makes a sandwich.
      *
      * @param {Object.<string, Object>} $ A local context containing references
      * to other resources needed to make sandwiches.
