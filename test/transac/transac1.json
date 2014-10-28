@@ -1,0 +1,13 @@
+{
+    "name": "hello",
+    "module" : "./transacImpl",
+    "description" : "Transaction test",
+    "env" : {
+        "language" : "spanish",
+        "message" : "hola mundo",
+        "number" : 7,
+        "flag" : true,
+        "maxRetries" : 10,
+        "retryDelay" : 100
+    }
+}

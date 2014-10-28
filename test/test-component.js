@@ -4,6 +4,7 @@ var bye = require('./bye/main.js');
 var faulty = require('./faulty/main.js');
 var dynamic = require('./dynamic/main.js');
 var proxy =  require('./proxy/main.js');
+var transac =  require('./transac/main.js');
 
 exports.helloworld = function (test) {
     test.expect(3);
@@ -380,3 +381,99 @@ exports.proxy = function (test) {
                    test.done();
                });
 };
+
+exports.transac = function (test) {
+    test.expect(15);
+    transac.load(null, {name: 'newHello'}, 'transac1.json', null,
+                 function(err, $) {
+                     test.ifError(err);
+                     var pr = $.newHello;
+                     test.equal(typeof(pr), 'object',
+                                'Cannot create transaction object');
+                     test.equal(pr.getMessage(), "hola mundo");
+                     test.equal(pr.getNumber(), 7);
+                     test.equal(pr.getLanguage(), 'spanish');
+                     var cp = null;
+                     async.series([
+                                      function(cb) {
+                                          pr.__ca_init__(cb);
+                                      },
+                                      function(cb) {
+                                          pr.__ca_begin__(null, cb);
+                                      },
+                                      function(cb) {
+                                          pr.__ca_lazyApply__("setLanguage",
+                                                              ["french"]);
+                                          pr.__ca_lazyApply__("setMessage",
+                                                              ["Bonjour Le Monde"]);
+                                          test.equal(pr.getMessage(),
+                                                     "hola mundo");
+                                          test.equal(pr.getLanguage(),
+                                                     'spanish');
+                                          pr.__ca_commit__(cb);
+                                      },
+                                      function(cb) {
+                                          test.equal(pr.getMessage(),
+                                                     'Bonjour Le Monde');
+                                          test.equal(pr.getLanguage(),
+                                                     'french');
+                                          cb(null);
+                                      },
+                                      function(cb) {
+                                          pr.__ca_begin__(null, cb);
+                                      },
+                                      function(cb) {
+                                          pr.__ca_lazyApply__("setLanguage",
+                                                              ["spanish"]);
+                                          pr.__ca_lazyApply__("setMessage",
+                                                              ["hola mundo"]);
+                                          var cb0 = function(err, data) {
+                                              cp = data;
+                                              cb(err, data);
+                                          };
+                                          pr.__ca_prepare__(cb0);
+                                      },
+                                      function(cb) {
+                                          pr.__ca_abort__(cb);
+                                      },
+                                      function(cb) {
+                                          test.equal(pr.getMessage(),
+                                                     'Bonjour Le Monde');
+                                          test.equal(pr.getLanguage(),
+                                                     'french');
+                                          cb(null);
+                                      },
+                                      function(cb) {
+                                          pr.__ca_resume__(cp, cb);
+                                      },
+                                      function(cb) {
+                                          test.equal(pr.getMessage(),
+                                                     "hola mundo");
+                                          test.equal(pr.getLanguage(),
+                                                     'spanish');
+                                          cb(null);
+                                      },
+                                      function(cb) {
+                                          pr.__ca_begin__(null, cb);
+                                      },
+                                      function(cb) {
+                                          pr.__ca_lazyApply__("setLanguage",
+                                                              ["french"]);
+                                          pr.__ca_lazyApply__("die", []);
+                                          pr.__ca_prepare__(cb);
+                                      },
+                                      function(cb) {
+                                          var cb0 = function(err) {
+                                              test.ok(err,
+                                                      "commit did not fail");
+                                              cb(null);
+                                          };
+                                          pr.__ca_commit__(cb0);
+                                      }
+                                  ], function(err, data) {
+                                      test.ifError(err);
+                                      test.done();
+                                  });
+                 });
+};
+
