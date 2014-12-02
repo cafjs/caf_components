@@ -347,7 +347,7 @@ exports.dynamic = function(test) {
                      },
                      function(cb) {
                          async.eachSeries(DYN_ADD, function(x, cb1) {
-                                              h2.__ca_createChild__(null,
+                                              h2.__ca_instanceChild__(null,
                                                                  specDyn(x),
                                                                  cb1);
                                           }, cb);
