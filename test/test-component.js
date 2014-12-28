@@ -140,7 +140,7 @@ exports.manyDirs = function(test) {
 };
 
 exports.properties = function(test) {
-    test.expect(9);
+    test.expect(11);
     async.series([
                      function(cb) {
                          hello.load(null, {name: 'newHello'}, 'hello4.json',
@@ -166,6 +166,10 @@ exports.properties = function(test) {
                                         test.equal(typeof(h1), 'object',
                                                    'Cannot create h1');
                                         test.equal(h1.getLanguage(), 'french');
+                                        var env = h1.getSpecEnv();
+                                        test.equal(env.someArray[0]
+                                                   .language, 'french');
+                                        test.equal(env.someArray[1], 'french');
                                         cb(err, $);
                                     });
                       }

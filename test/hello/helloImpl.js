@@ -28,6 +28,11 @@ exports.newInstance = function($, spec, cb) {
         that.getLanguage = function() {
             return spec.env.language;
         };
+
+        that.getSpecEnv = function() {
+            return spec.env;
+        };
+
         cb(null, that);
     } catch (err) {
         console.log('got err' + err);

@@ -17,6 +17,12 @@
             "description" : "Child1",
             "env" : {
                 "language" : "$._.env.language",
+                "someArray": [
+                    {
+                        "language" :"$._.env.language"
+                    },
+                    "$._.env.language"
+                ],
                 "message" : "child1",
                 "number" : 8,
                 "flag" : true
