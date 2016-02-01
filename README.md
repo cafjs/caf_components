@@ -6,7 +6,7 @@ See http://www.cafjs.com
 
 ## CAF Components
 
-[![Build Status](http://ci.cafjs.com/github.com/cafjs/caf_components/status.svg?branch=master)](http://ci.cafjs.com/github.com/cafjs/caf_components)
+[![Build Status](http://ci.cafjs.com/api/badges/cafjs/caf_components/status.svg)](http://ci.cafjs.com/cafjs/caf_components)
 
 
 This library creates and manages a hierarchy of asynchronous components. It has no dependencies with CAF core or libs, so that it can easily integrate with other Javascript frameworks. It was inspired by the SmartFrog (Java) framework http://www.smartfrog.org .
