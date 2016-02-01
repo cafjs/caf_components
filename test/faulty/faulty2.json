@@ -17,7 +17,7 @@
             "module" : "./plug_log",
             "description" : "Logger",
             "env" : {
-                "logLevel" : "TRACE"
+                "logLevel" : "DEBUG"
             }
         },
         {
