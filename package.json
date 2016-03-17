@@ -1,7 +1,7 @@
 {
     "name": "caf_components",
     "description": "Cloud Assistant Framework Components",
-    "version": "0.2.50",
+    "version": "0.2.51",
     "author": "Antonio Lain <antlai@cafjs.com>",
     "dependencies": {
         "async" : ">=0.1.9"
