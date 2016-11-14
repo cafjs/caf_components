@@ -1,0 +1,7 @@
+{
+    "module": "./hello",
+    "name" : "foo",
+    "env" : {
+        "msg" : "Hello World!"
+    }
+}

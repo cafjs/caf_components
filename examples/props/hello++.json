@@ -1,0 +1,22 @@
+{
+    "name" : "top",
+    "env": {
+        "myLogLevel": "process.env.MY_LOG_LEVEL||DEBUG",
+        "somethingElse": "process.env.SOMETHING_ELSE||{\"goo\":2}"
+    },
+    "components": [
+        {
+            "name" : "log",
+            "env" : {
+                "logLevel" : "$._.env.myLogLevel"
+            }
+        },
+        {
+            "name" : "foo",
+            "env" : {
+                "somethingElse" : "$._.env.somethingElse"
+            }
+        }
+
+    ]
+}

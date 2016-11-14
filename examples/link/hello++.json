@@ -1,0 +1,14 @@
+{
+    "name" : "top",
+    "env": {
+        "myLogLevel": "DEBUG"
+    },
+    "components": [
+        {
+            "name" : "log",
+            "env" : {
+                "logLevel" : "$._.env.myLogLevel"
+            }
+        }
+    ]
+}

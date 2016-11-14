@@ -1,274 +1,237 @@
-# CAF (Cloud Assistant Framework)
+# CAF.js (Cloud Assistant Framework)
 
-Co-design permanent, active, stateful, reliable cloud proxies with your web app.
+Co-design permanent, active, stateful, reliable cloud proxies with your web app and gadgets.
 
-See http://www.cafjs.com 
+See http://www.cafjs.com
 
 ## CAF Components
 
 [![Build Status](http://ci.cafjs.com/api/badges/cafjs/caf_components/status.svg)](http://ci.cafjs.com/cafjs/caf_components)
 
+This library configures and manages a hierarchy of asynchronously created components. Asynchronous constructors are useful when components need configuration data from an external service, and we do not want to block the main loop.
 
-This library creates and manages a hierarchy of asynchronous components. It has no dependencies with CAF core or libs, so that it can easily integrate with other Javascript frameworks. It was inspired by the SmartFrog (Java) framework http://www.smartfrog.org .
+It has no dependencies with other CAF.js packages, and we hope that it will be useful to other frameworks. In CAF.js **everything** is built with components.
 
-### Basics
+This library was inspired by the SmartFrog (Java) framework https://en.wikipedia.org/wiki/SmartFrog and Erlang/OTP supervision trees.
 
-A component exports an asynchronous factory method called `newInstance`. For example, in a file called `sandwich.js`, we have:
+### Hello World
 
-    /**
-     * Makes a sandwich.
-     *
-     * @param {Object.<string, Object>} $ A local context containing references
-     * to other resources needed to make sandwiches.
-     * @param {Object} spec A map with attributes to configure our sandwich.
-     * @param {function(?Error=, Sandwich=)} cb A callback to return a new,
-     * fully initialized sandwich.
-     */
-    exports.newInstance = function($, spec, cb) {
-        var sandwich = new Sandwich($, spec) // or your synchronous constructor
-        // asynchronously initialize 'sandwich'
-        ...
-        // and *after* initialization
-        if (err) { 
-           cb(err);
-        } else {
-          cb(null, sandwich);
-        }           
-    }
-
-In most cases `newInstance` is not directly called by your code. Instead, a JSON description file (`sandwich.json`) describes your components, and CAF does the rest. For example, `sandwich.json` contains:
+We use JSON to describe components. For example, file `hello.json` contains:
 
     {
-      "module" : "./sandwich",
-      "name" : "defaultNameForSandwich",
-      "description": "An item of food consisting of two pieces of bread with meat, cheese, or other filling between them, eaten as a light meal.\n Properties:\n  <bread> {string} Type of bread.\n  <fillings> {Array.<string>} Ingredients.\n"
-      "env" : {
-          bread : "rye",
-          fillings: [ "ham", "cheese"] 
-      }
+        "module": "./hello",
+        "name" : "foo",
+        "env" : {
+            "msg" : "Hello World!"
+        }
     }
 
-`name` is a default name to register a new sandwich in the local context `$`.
+where `env` is a set of properties to configure the component, `name` is a key to register the new component in a local context, and `module` an implementation for the component. In particular, the `hello.js` implementation file looks like this:
 
-`module` is the name of the module that provides `newInstance`, i.e., the factory implementation for sandwiches. 
+    exports.newInstance = function($, spec, cb) {
+        cb(null, {
+            hello: function() {
+                console.log(spec.name + ':' + spec.env.msg);
+            },
+            __ca_checkup__: function(data, cb0) {
+                cb0(null);
+            },
+            __ca_shutdown__: function(data, cb0) {
+                cb0(null);
+            }
+        });
+    };
 
-Sometimes a module defines many factory methods. We select one with a `#` so `sandwich#rubin` refers to `require("sandwich").rubin.newInstance()`
+An implementation exports an asynchronous factory method called `newInstance`. This method takes a local context `$`, a parsed configuration description `spec`, and a callback `cb` that returns the new component or an error.
 
-`env` is an object with properties to configure our sandwich. 
+The component needs to implement two methods:
 
-and in the same directory, `main.js`:
+- `__ca_checkup__` returns a callback error if there is something wrong with the component.
+- `__ca_shutdown__` sets the component in a disabled state. This function should be idempotent and irrecoverable.
 
-    var caf_comp = require('caf_components');
-    var $ = null; //  or an already initialized context
-    caf_comp.load($, {name: 'mySandwich'}, 'sandwich.json', [module], function(err, $) {
-          if (!err) {
-              console.log("Got a sandwich " + JSON.stringify($.mySandwich));
-          }
-    }
-    
-where the `load` method takes as arguments:
+See {@link module:caf_components/gen_component} for a discussion of checkup and shutdown.
 
-* A `$` local context (or `null` if we want to create a fresh one) to register the new sandwich.
+What we need now is a way to link the JSON description with the implementation:
 
-* A spec overriding default values in the description. In this case we just 
-bind our sandwich in `$` with the name `mySandwich`.
+    var main = require('caf_components');
+    main.load(null, null, 'hello.json', [module], function(err, $) {
+        if (err) {
+            console.log(main.myUtils.errToPrettyStr(err));
+        } else {
+            $.foo.hello();
+        }
+    });
 
-* A JSON description to create sandwiches.
+The method `main.load` is loading and parsing the json description, and using that description to instantiate and register a component in the `$` context. Since the first argument, i.e., the initial local context, was `null`, it will create a fresh `$` context.
 
-* A node.js module to load the description and code. Node.js module loading system binds a variable called `module` to the object representing the current module. We use the `require` method on that object to load resources in the same directory as `main.js`.
+Why do we need to provide `module`? The method `main.load` will execute a command like `require('./hello').newInstance(...)`, and it needs to know the directory paths to look for `hello.json` and `hello.js`. In this case, we assume that they are all in the same directory, but we can pass an array of `module` objects to provide alternative locations. See {@link module:caf_components/gen_loader} for details.
 
-* A callback that returns the original (or newly created) `$` context that contains the new sandwich.
+If we want to create another instance with a different configuration:
+
+    var main = require('caf_components');
+    main.load(null, {name: 'bar', env: {msg: 'Bye!'}}, 'hello.json', [module],
+        function(err, $) {
+            if (err) {
+                console.log(main.myUtils.errToPrettyStr(err));
+            } else {
+                $.bar.hello();
+            }
+    });
+
+and, before creating the component, `main.load` merges the configuration in the second argument with the contents of `hello.json`.
 
 
 ### Hierarchy
 
-How to create a hierarchy of components?  For example, in file `lunchBox.json`:
-
-     {
-        "module": "lunch",
-        "name": "myLunch",
-        "description": "Today's lunch.\n Properties:\n",
-         "env" : {         
-         },
-         "components" : [
-             {
-                "module": "woodBox",
-                "name": "myBox",
-                ...
-             },
-             {
-                "module": "banana",
-                "name": "myBanana",
-                ...
-             },              
-             {
-                "module" : "./sandwich",
-                "name" : "myFirstSandwich",
-                ...
-             },
-             {
-                "module" : "./sandwich",
-                "name" : "anotherSandwich",
-                ...
-             },
-             ...
-         ]
-     }
-
-Initialization is always sequential, respecting array order and tree dependencies (a parent component finishes initialization after its children). During shutdown we reverse that order. 
-
-Components with children create a fresh local context `$` for them. They also register the top level component (using `$._`) in that context. This allows any component to navigate the hierarchy of ready components. For example, `anotherSandwich` can refer to `myBox` as `$.myBox` or `$._.$.myBox` since `$._` refers to `myLunch`. 
-
-### Templates
-
-We can use any description as a template and, for example, override the `module` attribute for one component. We use the convention `<file_name>++.json` to specify the source template, so if `lunchBox++.json` contains:
-
-       {
-         "module" : "restaurantLunch",
-         "name" : "myLunch"
-       }
-
-the resulting description just modifies the top component implementation.
-
-What about ordering?
-
-Existing components are always patched in-place, without changing order. New ones are inserted just after the last patched (or inserted) component. We can also delete components by setting `module` to null. 
-
-This allow us to re-order components or add a new one in a particular position. For example, when `lunchBox++.json` is:
-
-      {
-         "name" : "myLunch"
-         "components": [
-             {
-               "name" : "myBanana"
-             },
-             {  
-               "module" : "./sandwich"
-               "name" : "reallyTheFirst"
-              ...
-             },
-             {
-              "module": null,
-              "name" :"myFirstSandwich"
-             }
-         ]
-      }
-      
-the final description will be:
+Let's add a hierarchy of components to `hello.json`:
 
     {
-        "module": "lunch",
-        "name": "myLunch",
-        "description": "Today's lunch.\n Properties:\n",
-         "env" : {         
-         },
-         "components" : [
-             {
-                "module": "woodBox",
-                "name": "myBox",
-                ...
-             },
-             {
-                "module": "banana",
-                "name": "myBanana",
-                ...
-             },              
-             {
-                "module" : "./sandwich",
-                "name" : "reallyTheFirst",
-                ...
-             },
-             {
-                "module" : "./sandwich",
-                "name" : "anotherSandwich",
-                ...
-             },
-             ...
-         ]
-     }
-
-### Linking
-
-In many cloud deployments configuration settings are specified using environment variables. We use the reserved `process.env.` prefix in a string to highlight a value in `env` that comes from the environment:
-
-      {
-        "module": "lunch",
-        "name": "myLunch"
-        "description": "Today's lunch.\n Properties:\n"
-         "env" : {
-            "location" : "process.env.MY_LOCATION"
-         },
-         ...
-         
-We can add a default value for undefined properties:
-
-     {
-        "module": "lunch",
-        "name": "myLunch"
-        "description": "Today's lunch.\n Properties:\n"
-         "env" : {
-            "location" : "process.env.MY_LOCATION ||Palo Alto"
-         },
-         ...
- 
-
-
-Also, we can refer to a value already defined in the topmost `env` by using  the prefix `$._.env.`. This value can be a `process.env.`, but not another symbolic link.
-
-       {       
-        "module": "lunch",
-        "name": "myLunch"
-        "description": "Today's lunch.\n Properties:\n"
-         "env" : {
-            "location" : "process.env.MY_LOCATION"
-         },
-         "components" : [
-             {
-                "module": "woodBox"
-                "name": "myBox"
+        "module": "caf_components#supervisor",
+        "name" : "top",
+        "env" : {
+            "maxRetries" : 10,
+            "retryDelay" : 1000,
+            "dieDelay" : 100,
+            "maxHangRetries" : 1,
+            "interval" : 1000
+        },
+        "components": [
+            {
+                "module": "caf_components#plug_log",
+                "name" : "log",
                 "env" : {
-                   "boxLocation" : "$._.env.location"
+                    "logLevel" : "DEBUG"
                 }
+            },
+            {
+                "module": "./hello",
+                "name" : "foo",
+                "env" : {
+                    "msg" : "Hello World!"
+                }
+            }
+        ]
+    }
+
+A package can provide factory methods for different component types. We add an access indirection by using the separator `#`. For example, `caf_components#supervisor` is loaded as `require("caf_components").supervisor.newInstance(..)`.
+
+Initialization of a hierarchy is always sequential, respecting array order, and ensuring that a parent component only registers after its children are properly initialized. During shutdown we do the opposite, unregistering the parent component asap, and reversing array order.
+
+This means that we can respect initialization dependencies by ordering components in the description. For example, `hello.js` can safely use the logging component at initialization time:
+
+    exports.newInstance = function($, spec, cb) {
+        $.log.debug('Initializing hello');
+        cb(null, {
+            hello: function() {
+                console.log(spec.name + ':' + spec.env.msg);
+            },
+            __ca_checkup__: function(data, cb0) {
+                cb0(null);
+            },
+            __ca_shutdown__: function(data, cb0) {
+                cb0(null);
+            }
+        });
+    };
+
+What if we have more than two levels? Each parent component (see {@link module:caf_components/gen_container} and {@link module:caf_components/gen_dynamic_container}) creates a fresh `$` context for its children, but it also registers a reference `_` in that context to the top component. This top reference helps them to navigate the hierarchy. For example, we can also refer to the logging component as `$._.$.log` since its parent is the top component.
+
+The calling program is modified slightly to use the top reference:
+
+    var main = require('caf_components');
+    main.load(null, null, 'hello.json', [module], function(err, $) {
+        if (err) {
+            console.log(main.myUtils.errToPrettyStr(err));
+        } else {
+            $._.$.foo.hello(); // or $.top.$.foo.hello()
+        }
+    });
+
+The top level supervisor (see {@link module:caf_components/supervisor}) forces components with children to periodically check their health, and take local recovery actions when they fail. When local recovery actions do not work, the failure bubbles up until it reaches the root component. This component typically just logs an error message, and exits the process with an error code. At that point an external recovery mechanism should take over.
+
+### Component Description Transforms
+
+In a cloud deployment scenario the usage model of component descriptions is fairly predictable:
+
+1. Start with a base template that defines a standard hierarchy of components for the service.
+2. Modify the template by adding, removing, or patching components.
+3. Create several instances of the modified template by passing different arguments.
+4. Propagate instance arguments to internal components.
+5. Fill in missing values by reading properties from the environment.
+
+We have already described how to provide instance arguments to `main.load`. Let's describe how to modify templates, propagate arguments with linking, and specify environment properties with defaults.
+
+#### Templates
+
+If we want to use the previous `hello.json` description as a template, and swap
+component `foo` by a new component `bar`, we just create a file with name `<fileNameBase>++.json`, i.e., `hello++.json`:
+
+    {
+        "name" : "top",
+         "components": [
+             {
+                 "module": null,
+                 "name" : "foo"
              },
-             ...
- 
-  
-
-### Component Methods
-
-Components implement two methods:
-
-    /**
-    *  Checks the health of this component.
-    *
-    *  @param {Object=} data An optional hint on how to perform the checkup.
-    *  @param {function(?Error=, Object=)} A callback invoked after the check,
-    *  with an error if component faulty, or optional info to bubble up.
-    *  
-    * @name  gen_component#__ca_checkup__
-    * @function
-    */
-    __ca_checkup__ = function(data, cb) {    
-    }
-    
-    
-    /**
-    *  Forces this component to shutdown. This action is non-recoverable and 
-    * idempotent. After a successful shutdown, a component  is deregistered
-    * from the original local context '$'. If failures occur, the
-    * parent component should also take a recovery action to clean-up (e.g.,  
-    * shutdown the  node.js process).
-    *
-    *  @param {Object=} data An optional hint on how to perform the shutdown.
-    *  @param {function(?Error=)} A callback invoked after the
-    * shutdown, with an error if it failed.
-    *
-    * @name  gen_component#__ca_shutdown__
-    * @function
-    */
-    __ca_shutdown__ = function(data, cb) {
+             {
+                 "module": "./hello",
+                 "name" : "bar",
+                 "env" : {
+                     "msg" : "Bye!"
+                 }
+             }
+         ]
     }
 
-### Supervisor
+and this description merges with the original by following simple rules:
 
-Similar to an Erlang/OTP supervisor, components with children periodically check their health and take recovery actions when they fail. When recovery actions do not work, the failure bubbles up until it reaches the root component. This component typically just logs an error message and exits with an error code. At that point an external recovery mechanism should take over.
+* Use `name` to identify matching components.
+* Assign `null` to `module` to delete a component.
+* Components like `bar` that do not match existing ones are inserted just after the last changed one, i.e., `foo`.
+
+See {@link module:caf_components/templateUtils} for details.
+
+#### Linking
+
+We want to parameterize descriptions without knowing the configuration details of internal components. Arguments only modify the top level component, and we specify links to properties of this component with the `$._.env.` prefix. For example, in `hello++.json`:
+
+    {
+        "name" : "top",
+        "env": {
+            "myLogLevel": "DEBUG"
+        },
+        "components": [
+             {
+                 "name" : "log",
+                 "env" : {
+                     "logLevel" : "$._.env.myLogLevel"
+                 }
+             }
+         ]
+    }
+
+and now we can change the logging level with:
+
+    main.load(null, {env: {myLogLevel: 'WARN'}}, 'hello.json', ...
+
+#### Properties
+
+We use the reserved `process.env.` prefix for values that come  from the environment. We can also provide default values using the string separator `||`, and any characters after it will be parsed as JSON. If parsing fails, we default to a simple string, avoiding the JSON requirement of quoting all strings. For example:
+
+    {
+        "name" : "top",
+        "env": {
+            "myLogLevel": "process.env.MY_LOG_LEVEL||DEBUG",
+            "somethingElse": "process.env.SOMETHING_ELSE||{\"goo\":2}"
+        },
+        "components": [
+             {
+                 "name" : "log",
+                 "env" : {
+                     "logLevel" : "$._.env.myLogLevel"
+                 }
+             }
+         ]
+    }
+
+and now we can change the logging level by setting the environment variable `MY_LOG_LEVEL`

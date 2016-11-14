@@ -1,0 +1,16 @@
+{
+    "name" : "top",
+    "components": [
+        {
+            "module": null,
+            "name" : "foo"
+        },
+        {
+            "module": "./hello",
+            "name" : "bar",
+            "env" : {
+                "msg" : "Bye!"
+            }
+        }
+    ]
+}

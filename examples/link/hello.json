@@ -1,0 +1,27 @@
+{
+    "module": "../../index.js#supervisor",
+    "name" : "top",
+    "env" : {
+        "maxRetries" : 10,
+        "retryDelay" : 1000,
+        "dieDelay" : 100,
+        "maxHangRetries" : 1,
+        "interval" : 1000
+    },
+    "components": [
+        {
+            "module": "../../index.js#plug_log",
+            "name" : "log",
+            "env" : {
+                 "logLevel" : "DEBUG"
+            }
+        },
+        {
+            "module": "./hello",
+            "name" : "foo",
+            "env" : {
+                 "msg" : "Hello World!"
+            }
+        }
+    ]
+}
