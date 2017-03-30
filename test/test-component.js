@@ -9,12 +9,11 @@ var transac =  require('./transac/main.js');
 exports.helloworld = function (test) {
     test.expect(3);
     hello.load(null, null, 'hello1.json', null, function(err, $) {
-                      test.ifError(err);
-                      test.equal(typeof($.hello), 'object',
-                                 'Cannot create hello');
-                      test.equal($.hello.getMessage(), "hola mundo");
-                      test.done();
-                  });
+        test.ifError(err);
+        test.equal(typeof($.hello), 'object', 'Cannot create hello');
+        test.equal($.hello.getMessage(), "hola mundo");
+        test.done();
+    });
 };
 
 exports.rename = function (test) {
@@ -333,45 +332,45 @@ var checkDyn = function(test, err, $, waitMSec, cb) {
 
 
 exports.dynamic = function(test) {
-    test.expect(14);
+    test.expect(15);
     var context;
     var h2;
     async.series([
-                     function(cb) {
-                         dynamic.load(null, {name: 'newHello'}, 'dynamic1.json',
-                                      null, function(err, $) {
-                                          if (err) {
-                                              cb(err);
-                                          } else {
-                                              context = $;
-                                              h2 = $._.$.h2;
-                                              cb(err, $);
-                                          }
-                                      });
-                     },
-                     function(cb) {
-                         async.eachSeries(DYN_ADD, function(x, cb1) {
-                                              h2.__ca_instanceChild__(null,
-                                                                 specDyn(x),
-                                                                 cb1);
-                                          }, cb);
-                     },
-                     function(cb) {
-                         async.eachSeries(DYN_RM, function(x, cb1) {
-                                              h2.__ca_deleteChild__(null, x,
-                                                                    cb1);
-                                          }, cb);
-                     },
-                     function(cb) {
-                         checkDyn(test, null, context, 10000, cb);
-                     },
-                     function(cb) {
-                         context.newHello.__ca_shutdown__(null, cb);
-                     }
-                 ], function(err, data) {
-                     test.ifError(err);
-                     test.done();
-                 });
+        function(cb) {
+            dynamic.load(null, {name: 'newHello'}, 'dynamic1.json', null,
+                         function(err, $) {
+                             if (err) {
+                                 cb(err);
+                             } else {
+                                 context = $;
+                                 h2 = $._.$.h2;
+                                 var ind = $._.$.loader.__ca_getModuleIndex__();
+                                 var res = ind['./dynamicSup'].id.split('/');
+                                 test.equal(res[res.length-1], 'main.js');
+                                 cb(err, $);
+                             }
+                         });
+        },
+        function(cb) {
+            async.eachSeries(DYN_ADD, function(x, cb1) {
+                h2.__ca_instanceChild__(null, specDyn(x), cb1);
+            }, cb);
+        },
+        function(cb) {
+            async.eachSeries(DYN_RM, function(x, cb1) {
+                h2.__ca_deleteChild__(null, x, cb1);
+            }, cb);
+        },
+        function(cb) {
+            checkDyn(test, null, context, 10000, cb);
+        },
+        function(cb) {
+            context.newHello.__ca_shutdown__(null, cb);
+        }
+    ], function(err, data) {
+        test.ifError(err);
+        test.done();
+    });
 };
 
 exports.proxy = function (test) {
@@ -480,4 +479,3 @@ exports.transac = function (test) {
                                   });
                  });
 };
-
