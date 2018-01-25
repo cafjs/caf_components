@@ -1,15 +1,15 @@
 {
   "name": "caf_components",
   "description": "Cloud Assistant Framework Components",
-  "version": "0.2.59",
+  "version": "0.3.0",
   "author": "Antonio Lain <antlai@cafjs.com>",
   "dependencies": {
     "async": "^1.5.2"
   },
   "devDependencies": {
-      "eslint": "^3.1.1",
-      "nodeunit": ">=0.9",
-      "jsdoc": "^3.4.2"
+    "eslint": "^3.1.1",
+    "nodeunit": ">=0.9",
+    "jsdoc": "^3.4.2"
   },
   "main": "index",
   "homepage": "http://www.cafjs.com",
@@ -18,10 +18,10 @@
     "url": "https://github.com/cafjs/caf_components.git"
   },
   "scripts": {
-      "test": "node ./node_modules/.bin/nodeunit",
-      "eslint" : "./node_modules/.bin/eslint .",
-      "eslintfix" : "./node_modules/.bin/eslint --fix .",
-      "docs" : "rm -fr docs; mkdir -p docs; ./node_modules/.bin/jsdoc --pedantic -c ./conf.json -d docs lib/*.js --readme ./README.md --package ./package.json"
+    "test": "node ./node_modules/.bin/nodeunit",
+    "eslint": "./node_modules/.bin/eslint .",
+    "eslintfix": "./node_modules/.bin/eslint --fix .",
+    "docs": "rm -fr docs; mkdir -p docs; ./node_modules/.bin/jsdoc --pedantic -c ./conf.json -d docs lib/*.js --readme ./README.md --package ./package.json"
   },
   "engines": {
     "node": ">= 0.10.1 "
