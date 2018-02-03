@@ -1,0 +1,11 @@
+{
+    "name": "hello",
+    "module" : "./helloImpl",
+    "description" : "Hello test",
+    "env" : {
+        "language" : "spanish",
+        "message" : "hola mundo",
+        "number" : 7,
+        "flag" : true
+    }
+}

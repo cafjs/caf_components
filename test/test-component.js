@@ -1,5 +1,6 @@
 var async = require('async');
 var hello = require('./hello/main.js');
+var helloAsync = require('./async/main.js');
 var bye = require('./bye/main.js');
 var faulty = require('./faulty/main.js');
 var dynamic = require('./dynamic/main.js');
@@ -12,6 +13,18 @@ exports.helloworld = function (test) {
         test.ifError(err);
         test.equal(typeof($.hello), 'object', 'Cannot create hello');
         test.equal($.hello.getMessage(), "hola mundo");
+        test.done();
+    });
+};
+
+exports.helloworldAsync = function (test) {
+    test.expect(3);
+    helloAsync.load(null, null, 'hello1.json', null, function(err, $) {
+        test.ifError(err);
+        if (!err) {
+            test.equal(typeof($.hello), 'object', 'Cannot create hello');
+            test.equal($.hello.getMessage(), "hola mundo");
+        }
         test.done();
     });
 };
