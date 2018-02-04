@@ -7,9 +7,13 @@
     "async": "^1.5.2"
   },
   "devDependencies": {
-    "eslint": "^3.1.1",
-    "nodeunit": ">=0.9",
-    "jsdoc": "^3.4.2"
+      "eslint": "^3.1.1",
+      "nodeunit": ">=0.9",
+      "jsdoc": "^3.4.2",
+      "typescript": "^2.7.1",
+      "@types/node": "^9.4.0",
+      "@types/async": "^2.0.47"
+
   },
   "main": "index",
   "homepage": "http://www.cafjs.com",
@@ -21,7 +25,8 @@
     "test": "node ./node_modules/.bin/nodeunit",
     "eslint": "./node_modules/.bin/eslint .",
     "eslintfix": "./node_modules/.bin/eslint --fix .",
-    "docs": "rm -fr docs; mkdir -p docs; ./node_modules/.bin/jsdoc --pedantic -c ./conf.json -d docs lib/*.js --readme ./README.md --package ./package.json"
+      "docs": "rm -fr docs; mkdir -p docs; ./node_modules/.bin/jsdoc --pedantic -c ./conf.json -d docs lib/*.js --readme ./README.md --package ./package.json",
+      "checktype" : "./node_modules/.bin/tsc"
   },
   "engines": {
     "node": ">= 0.10.1 "
