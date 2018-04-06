@@ -6,6 +6,7 @@ var faulty = require('./faulty/main.js');
 var dynamic = require('./dynamic/main.js');
 var proxy =  require('./proxy/main.js');
 var transac =  require('./transac/main.js');
+var myUtils = require('../index').myUtils;
 
 exports.helloworld = function (test) {
     test.expect(3);
@@ -491,4 +492,19 @@ exports.transac = function (test) {
                                       test.done();
                                   });
                  });
+};
+
+exports.delay = function (test) {
+    test.expect(2);
+    var f = function(cb) {/* wait forever*/};
+    var g = function(cb) { setTimeout(function() {cb(null, 'ok');}, 100);};
+    var f1 = myUtils.wrapWithTimeout(f, 1000);
+    var g1 = myUtils.wrapWithTimeout(g, 1000);
+    f1(function(err) {
+        test.equal(err.timeout, true, 'No timeout');
+        g1(function(err, data) {
+            test.equal(data, 'ok', 'Unwanted timeout');
+            test.done();
+        });
+    });
 };
