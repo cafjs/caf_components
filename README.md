@@ -6,7 +6,7 @@ See http://www.cafjs.com
 
 ## CAF Components
 
-[![Build Status](http://ci.cafjs.com/api/badges/cafjs/caf_components/status.svg)](http://ci.cafjs.com/cafjs/caf_components)
+[![Build Status](https://travis-ci.org/cafjs/caf_components.svg?branch=master)](https://travis-ci.org/cafjs/caf_components)
 
 This library configures and manages a hierarchy of asynchronously created components. Asynchronous constructors are useful when components need configuration data from an external service, and we do not want to block the main loop.
 
