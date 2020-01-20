@@ -11,7 +11,7 @@ var myUtils = caf_comp.myUtils;
 exports.newInstance = function($, spec, cb) {
     try {
 
-        var that = genComponent.constructor($, spec);
+        var that = genComponent.create($, spec);
         var uuid = Math.floor(Math.random() *10000000000000000);
 
         var time2Die = Math.floor(Math.random() * spec.env.MTBF);

@@ -11,7 +11,7 @@ var genTrans =  caf_comp.gen_transactional;
 exports.newInstance = function($, spec, cb) {
     try {
 
-        var that = genTrans.constructor($, spec);
+        var that = genTrans.create($, spec);
         var message =  spec.env.message;
         var number = spec.env.number;
         var language = spec.env.language;

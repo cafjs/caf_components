@@ -9,7 +9,7 @@ var genContainer =  caf_comp.gen_container;
  */
 exports.newInstance = function($, spec, cb) {
     try {
-        var that = genContainer.constructor($, spec);
+        var that = genContainer.create($, spec);
         that.getMessage = function() {
             return spec.env.message;
         };

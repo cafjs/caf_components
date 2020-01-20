@@ -9,7 +9,7 @@ var util = require('util');
  * @see supervisor
  */
 exports.newInstance = async function($, spec) {
-    var that = genComponent.constructor($, spec);
+    var that = genComponent.create($, spec);
 
     Object.assign(that, {
         getMessage()  {

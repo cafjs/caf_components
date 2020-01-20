@@ -9,7 +9,7 @@ var gen_sup =  caf_comp.gen_supervisor;
  */
 exports.newInstance = function($, spec, cb) {
     try {
-        var that = gen_sup.constructor($, spec);
+        var that = gen_sup.create($, spec);
         var count = 0;
 
         var notifyF = function(err, res) {

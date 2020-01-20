@@ -9,7 +9,7 @@ var genPlugCA =  caf_comp.gen_plug_ca;
  */
 exports.newInstance = function($, spec, cb) {
     try {
-        var that = genPlugCA.constructor($, spec);
+        var that = genPlugCA.create($, spec);
         that.getMessage = function() {
             return $._.$.plug.getMessage();
         };

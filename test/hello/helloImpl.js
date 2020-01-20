@@ -11,7 +11,7 @@ var genComponent =  caf_comp.gen_component;
 exports.newInstance = function($, spec, cb) {
     try {
 
-        var that = genComponent.constructor($, spec);
+        var that = genComponent.create($, spec);
 
         that.getMessage = function() {
             return spec.env.message;
