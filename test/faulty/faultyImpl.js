@@ -1,6 +1,7 @@
 var caf_comp = require('../../index');
 
 var genComponent =  caf_comp.gen_component;
+var myUtils = caf_comp.myUtils;
 
 
 /**
@@ -30,14 +31,15 @@ exports.newInstance = function($, spec, cb) {
         };
 
         setTimeout(function() {
-                       var dummyF = function() {
-                           console.log("Dying " + uuid);
-                       };
-                       $._.newFault();
-                       if ($._.stillFaulty()) {
-                           that.__ca_shutdown__(null, dummyF);
-                       }
-                   }, time2Die);
+            var dummyF = function() {
+                console.log("Dying " + uuid);
+            };
+            $._.newFault();
+            if ($._.stillFaulty()) {
+                const f = myUtils.wrapAsyncFunction(that.__ca_shutdown__, that);
+                f(null, dummyF);
+            }
+        }, time2Die);
         cb(null, that);
     } catch (err) {
         console.log('got err' + err);

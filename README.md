@@ -51,11 +51,11 @@ In node 8 or later we can also use `async/await` to implement the asynchronous f
             hello() {
                 console.log(spec.name + ':' + spec.env.msg);
             },
-            __ca_checkup__(data, cb0) {
-                cb0(null);
+            async __ca_checkup__(data) {
+                return [];
             },
-            __ca_shutdown__(data, cb0) {
-                cb0(null);
+            async __ca_shutdown__(data) {
+                return [];
             }
         };
         return [null, that];
@@ -65,7 +65,7 @@ returning an array with an error/component pair.
 
 The component needs to implement two methods:
 
-- `__ca_checkup__` returns a callback error if there is something wrong with the component.
+- `__ca_checkup__` returns a callback error if there is something wrong with the component or, if `async`, a promise tuple array with the error as first entry.
 - `__ca_shutdown__` sets the component in a disabled state. This function should be idempotent and irrecoverable.
 
 See {@link module:caf_components/gen_component} for a discussion of checkup and shutdown.

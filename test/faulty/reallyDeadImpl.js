@@ -44,7 +44,8 @@ exports.newInstance = function($, spec, cb) {
             var cb1 = function(err, res) {
                 super__ca_checkup__(err, cb);
             };
-            that.__ca_shutdown__(data, cb1);
+            const f = myUtils.wrapAsyncFunction(that.__ca_shutdown__, that);
+            f(data, cb1);
         };
 
         cb(null, that);

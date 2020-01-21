@@ -1,6 +1,7 @@
 var caf_comp = require('../../index');
 
 var genContainer =  caf_comp.gen_dynamic_container;
+var myUtils = caf_comp.myUtils;
 
 /**
  * Factory method to create a test component.
@@ -28,14 +29,16 @@ exports.newInstance = function($, spec, cb) {
 
         if (!spec.env.doNotDie) {
             setTimeout(function() {
-                           var dummyF = function() {
-                               console.log("Dying " + uuid);
-                           };
-                           $._.newFault();
-                           if ($._.stillFaulty()) {
-                               that.__ca_shutdown__(null, dummyF);
-                           }
-                       }, time2Die);
+                var dummyF = function() {
+                    console.log("Dying " + uuid);
+                };
+                $._.newFault();
+                if ($._.stillFaulty()) {
+                    const f = myUtils.wrapAsyncFunction(that.__ca_shutdown__,
+                                                        that);
+                    f(null, dummyF);
+                }
+            }, time2Die);
         }
         cb(null, that);
     } catch (err) {
