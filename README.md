@@ -1,16 +1,18 @@
-# CAF.js (Cloud Assistant Framework)
+# Caf.js
 
 Co-design permanent, active, stateful, reliable cloud proxies with your web app and gadgets.
 
-See http://www.cafjs.com
+See https://www.cafjs.com
 
-## CAF Components
+## Library for Building Caf.js Components
 
 [![Build Status](https://travis-ci.org/cafjs/caf_components.svg?branch=master)](https://travis-ci.org/cafjs/caf_components)
 
-This library configures and manages a hierarchy of asynchronously created components. Asynchronous constructors are useful when components need configuration data from an external service, and we do not want to block the main loop.
+This library configures and manages a hierarchy of asynchronously created components. Asynchronous constructors are useful when components read its configuration data from an external service, and we do not want to block the main loop.
 
-It has no dependencies with other CAF.js packages, and we hope that it will be useful to other frameworks. In CAF.js **everything** is built with components.
+It has no dependencies with other `Caf.js` packages, and we hope that it will be useful to other frameworks.
+
+In `Caf.js` **everything** is built with components.
 
 This library was inspired by the SmartFrog (Java) framework https://en.wikipedia.org/wiki/SmartFrog and Erlang/OTP supervision trees.
 
