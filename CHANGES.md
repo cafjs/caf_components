@@ -6,6 +6,7 @@ The  copyright of the original `CAF` project is assigned to `Hewlett-Packard Dev
 
 ## 0.4.2
  - Fix missing checkpoint for a new plug-in
+ - Silence console.log before logger
 
 ## 0.4.1
  - Don't rethrow exceptions in async functions. Instead, mark them with the `wasThrown` flag.
