@@ -13,8 +13,8 @@
       "jsdoc": "^3.4.2",
       "typescript": "3.7.3",
       "@types/node": "12.12.31",
-      "@types/async": "^2.0.47"
-
+      "@types/async": "^2.0.47",
+      "docdash": "^1.2.0"
   },
   "main": "index",
   "homepage": "http://www.cafjs.com",

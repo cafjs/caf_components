@@ -20,6 +20,7 @@ This library was inspired by the SmartFrog (Java) framework https://en.wikipedia
 
 We use JSON to describe components. For example, file `hello.json` contains:
 
+```
     {
         "module": "./hello",
         "name" : "foo",
@@ -27,9 +28,11 @@ We use JSON to describe components. For example, file `hello.json` contains:
             "msg" : "Hello World!"
         }
     }
+```
 
 where `env` is a set of properties to configure the component, `name` is a key to register the new component in a local context, and `module` an implementation for the component. In particular, the `hello.js` implementation file looks like this:
 
+```
     exports.newInstance = function($, spec, cb) {
         cb(null, {
             hello() {
@@ -43,13 +46,15 @@ where `env` is a set of properties to configure the component, `name` is a key t
             }
         });
     };
+```
 
 An implementation exports an asynchronous factory method called `newInstance`. This method takes a local context `$`, a parsed configuration description `spec`, and a callback `cb` that returns the new component or an error.
 
 In node 8 or later we can also use `async/await` to implement the asynchronous factory method:
 
+```
     exports.newInstance = async function($, spec) {
-        var that = {
+        const that = {
             hello() {
                 console.log(spec.name + ':' + spec.env.msg);
             },
@@ -62,6 +67,7 @@ In node 8 or later we can also use `async/await` to implement the asynchronous f
         };
         return [null, that];
     };
+```
 
 returning an array with an error/component pair.
 
@@ -74,7 +80,8 @@ See {@link module:caf_components/gen_component} for a discussion of checkup and 
 
 What we need now is a way to link the JSON description with the implementation:
 
-    var main = require('caf_components');
+```
+    const main = require('caf_components');
     main.load(null, null, 'hello.json', [module], function(err, $) {
         if (err) {
             console.log(main.myUtils.errToPrettyStr(err));
@@ -82,6 +89,7 @@ What we need now is a way to link the JSON description with the implementation:
             $.foo.hello();
         }
     });
+```
 
 The method `main.load` is loading and parsing the json description, and using that description to instantiate and register a component in the `$` context. Since the first argument, i.e., the initial local context, was `null`, it will create a fresh `$` context.
 
@@ -89,7 +97,8 @@ Why do we need to provide `module`? The method `main.load` will execute a comman
 
 If we want to create another instance with a different configuration:
 
-    var main = require('caf_components');
+```
+    const main = require('caf_components');
     main.load(null, {name: 'bar', env: {msg: 'Bye!'}}, 'hello.json', [module],
         function(err, $) {
             if (err) {
@@ -98,6 +107,7 @@ If we want to create another instance with a different configuration:
                 $.bar.hello();
             }
     });
+```
 
 and, before creating the component, `main.load` merges the configuration in the second argument with the contents of `hello.json`.
 
@@ -106,6 +116,7 @@ and, before creating the component, `main.load` merges the configuration in the 
 
 Let's add a hierarchy of components to `hello.json`:
 
+```
     {
         "module": "caf_components#supervisor",
         "name" : "top",
@@ -133,6 +144,7 @@ Let's add a hierarchy of components to `hello.json`:
             }
         ]
     }
+```
 
 A package can provide factory methods for different component types. We add an access indirection by using the separator `#`. For example, `caf_components#supervisor` is loaded as `require("caf_components").supervisor.newInstance(..)`.
 
@@ -140,6 +152,7 @@ Initialization of a hierarchy is always sequential, respecting array order, and 
 
 This means that we can respect initialization dependencies by ordering components in the description. For example, `hello.js` can safely use the logging component at initialization time:
 
+```
     exports.newInstance = function($, spec, cb) {
         $.log.debug('Initializing hello');
         cb(null, {
@@ -154,12 +167,14 @@ This means that we can respect initialization dependencies by ordering component
             }
         });
     };
+```
 
 What if we have more than two levels? Each parent component (see {@link module:caf_components/gen_container} and {@link module:caf_components/gen_dynamic_container}) creates a fresh `$` context for its children, but it also registers a reference `_` in that context to the top component. This top reference helps them to navigate the hierarchy. For example, we can also refer to the logging component as `$._.$.log` since its parent is the top component.
 
 The calling program is modified slightly to use the top reference:
 
-    var main = require('caf_components');
+```
+    const main = require('caf_components');
     main.load(null, null, 'hello.json', [module], function(err, $) {
         if (err) {
             console.log(main.myUtils.errToPrettyStr(err));
@@ -167,6 +182,7 @@ The calling program is modified slightly to use the top reference:
             $._.$.foo.hello(); // or $.top.$.foo.hello()
         }
     });
+```
 
 The top level supervisor (see {@link module:caf_components/supervisor}) forces components with children to periodically check their health, and take local recovery actions when they fail. When local recovery actions do not work, the failure bubbles up until it reaches the root component. This component typically just logs an error message, and exits the process with an error code. At that point an external recovery mechanism should take over.
 
@@ -187,6 +203,7 @@ We have already described how to provide instance arguments to `main.load`. Let'
 If we want to use the previous `hello.json` description as a template, and swap
 component `foo` by a new component `bar`, we just create a file with name `<fileNameBase>++.json`, i.e., `hello++.json`:
 
+```
     {
         "name" : "top",
          "components": [
@@ -203,6 +220,7 @@ component `foo` by a new component `bar`, we just create a file with name `<file
              }
          ]
     }
+```
 
 and this description merges with the original by following simple rules:
 
@@ -216,6 +234,7 @@ See {@link module:caf_components/templateUtils} for details.
 
 We want to parameterize descriptions without knowing the configuration details of internal components. Arguments only modify the top level component, and we specify links to properties of this component with the `$._.env.` prefix. For example, in `hello++.json`:
 
+```
     {
         "name" : "top",
         "env": {
@@ -230,15 +249,19 @@ We want to parameterize descriptions without knowing the configuration details o
              }
          ]
     }
+```
 
 and now we can change the logging level with:
 
+```
     main.load(null, {env: {myLogLevel: 'WARN'}}, 'hello.json', ...
+```
 
 #### Properties
 
 We use the reserved `process.env.` prefix for values that come  from the environment. We can also provide default values using the string separator `||`, and any characters after it will be parsed as JSON. If parsing fails, we default to a simple string, avoiding the JSON requirement of quoting all strings. For example:
 
+```
     {
         "name" : "top",
         "env": {
@@ -254,5 +277,6 @@ We use the reserved `process.env.` prefix for values that come  from the environ
              }
          ]
     }
+```
 
 and now we can change the logging level by setting the environment variable `MY_LOG_LEVEL`
