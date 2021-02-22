@@ -1,18 +1,27 @@
 'use strict';
 /* eslint-disable  no-console */
 
-exports.newInstance = function($, spec, cb) {
+exports.newInstance = async function($, spec) {
+    let isShutdown = false;
+
     $.log.debug('Initializing hello');
-    console.log(spec.env.somethingElse.goo);
-    cb(null, {
-        hello: function() {
-            console.log(spec.name + ':' + spec.env.msg);
+
+    $.log.warn(spec.env.somethingElse.goo);
+
+    const that = {
+        hello() {
+            !isShutdown && $.log.warn(spec.name + ':' + spec.env.msg);
         },
-        __ca_checkup__: function(data, cb0) {
-            cb0(null);
+        /* eslint-disable  no-unused-vars */
+        async __ca_checkup__(data) {
+            return isShutdown ? [new Error('Shutdown')] : [];
         },
-        __ca_shutdown__: function(data, cb0) {
-            cb0(null);
+        /* eslint-disable  no-unused-vars */
+        async __ca_shutdown__(data) {
+            isShutdown = true;
+            $ && ($[spec.name] === that) && delete $[spec.name];
+            return [];
         }
-    });
+    };
+    return [null, that];
 };

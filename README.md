@@ -8,109 +8,95 @@ See https://www.cafjs.com
 
 [![Build Status](https://travis-ci.org/cafjs/caf_components.svg?branch=master)](https://travis-ci.org/cafjs/caf_components)
 
-This library configures and manages a hierarchy of asynchronously created components. Asynchronous constructors are useful when components read its configuration data from an external service, and we do not want to block the main loop.
-
-It has no dependencies with other `Caf.js` packages, and we hope that it will be useful to other frameworks.
-
 In `Caf.js` **everything** is built with components.
+
+This library configures and manages a hierarchy of asynchronously created components. Asynchronous constructors allow components to read configuration data from an external service without blocking the main loop.
 
 This library was inspired by the SmartFrog (Java) framework https://en.wikipedia.org/wiki/SmartFrog and Erlang/OTP supervision trees.
 
 ### Hello World
 
-We use JSON to describe components. For example, file `hello.json` contains:
+We use JSON to describe components. For example, the file `hello.json` in `examples/helloworld` is:
 
 ```
     {
         "module": "./hello",
         "name" : "foo",
+        "description" : "My first component",
         "env" : {
             "msg" : "Hello World!"
         }
     }
 ```
 
-where `env` is a set of properties to configure the component, `name` is a key to register the new component in a local context, and `module` an implementation for the component. In particular, the `hello.js` implementation file looks like this:
+- `env` a set of properties to configure the component.
+- `name` a key to register the new component in a local context.
+- `description` a comment describing the component.
+- `module` an implementation for the component.
+
+Implementations export an asynchronous factory method called `newInstance`. This method takes two arguments, a local context `$` to register the new component, and a configuration map typically derived from the parsed JSON description.
+
+For example, the implementation file `hello.js` looks like this:
 
 ```
-    exports.newInstance = function($, spec, cb) {
-        cb(null, {
-            hello() {
-                console.log(spec.name + ':' + spec.env.msg);
-            },
-            __ca_checkup__(data, cb0) {
-                cb0(null);
-            },
-            __ca_shutdown__(data, cb0) {
-                cb0(null);
-            }
-        });
+exports.newInstance = async function($, spec) {
+    let isShutdown = false;
+    const that = {
+        hello() {
+            !isShutdown && console.log(spec.name + ':' + spec.env.msg);
+        },
+        async __ca_checkup__(data) {
+            return isShutdown ? [new Error('Shutdown')] : [];
+        },
+        async __ca_shutdown__(data) {
+            isShutdown = true;
+            $ && ($[spec.name] === that) && delete $[spec.name];
+            return [];
+        }
     };
+    return [null, that];
+};
 ```
 
-An implementation exports an asynchronous factory method called `newInstance`. This method takes a local context `$`, a parsed configuration description `spec`, and a callback `cb` that returns the new component or an error.
+Components always implement two methods:
 
-In node 8 or later we can also use `async/await` to implement the asynchronous factory method:
+- `__ca_checkup__` returns an error if there is something wrong with the component.
+- `__ca_shutdown__` sets the component in a disabled state and removes it from the context. This function should be idempotent and irrecoverable.
 
-```
-    exports.newInstance = async function($, spec) {
-        const that = {
-            hello() {
-                console.log(spec.name + ':' + spec.env.msg);
-            },
-            async __ca_checkup__(data) {
-                return [];
-            },
-            async __ca_shutdown__(data) {
-                return [];
-            }
-        };
-        return [null, that];
-    };
-```
-
-returning an array with an error/component pair.
-
-The component needs to implement two methods:
-
-- `__ca_checkup__` returns a callback error if there is something wrong with the component or, if `async`, a promise tuple array with the error as first entry.
-- `__ca_shutdown__` sets the component in a disabled state. This function should be idempotent and irrecoverable.
+Methods return **handled**  errors in the first argument of an array tuple. In `Caf.js` application-level errors are managed differently from thrown exceptions, or unrecoverable system errors, and this approach gives us more flexibility.
 
 See {@link module:caf_components/gen_component} for a discussion of checkup and shutdown.
 
-What we need now is a way to link the JSON description with the implementation:
+To link the JSON description with the component implementation:
 
 ```
-    const main = require('caf_components');
-    main.load(null, null, 'hello.json', [module], function(err, $) {
-        if (err) {
-            console.log(main.myUtils.errToPrettyStr(err));
-        } else {
-            $.foo.hello();
-        }
-    });
+const main = require('caf_components');
+try {
+    const $ = await main.load(null, null, 'hello.json', [module]);
+    $.foo.hello();
+} catch (err) {
+    console.log(main.myUtils.errToPrettyStr(err));
+}
 ```
 
-The method `main.load` is loading and parsing the json description, and using that description to instantiate and register a component in the `$` context. Since the first argument, i.e., the initial local context, was `null`, it will create a fresh `$` context.
+The method `main.load` is loading and parsing the JSON description, and using that description to instantiate and register a component in the `$` context. Since the first argument, i.e., the initial local context, was `null`, it will create a fresh `$` context.
 
-Why do we need to provide `module`? The method `main.load` will execute a command like `require('./hello').newInstance(...)`, and it needs to know the directory paths to look for `hello.json` and `hello.js`. In this case, we assume that they are all in the same directory, but we can pass an array of `module` objects to provide alternative locations. See {@link module:caf_components/gen_loader} for details.
+Why do we need to provide `module`? The method `main.load` needs the directory paths of `hello.json` and `hello.js`, and in this case they are all assumed to be in the same directory. In complex cases an array of `module` objects could provide alternative locations. See {@link module:caf_components/gen_loader} for details.
 
-If we want to create another instance with a different configuration:
+To create another instance with a different configuration:
 
 ```
-    const main = require('caf_components');
-    main.load(null, {name: 'bar', env: {msg: 'Bye!'}}, 'hello.json', [module],
-        function(err, $) {
-            if (err) {
-                console.log(main.myUtils.errToPrettyStr(err));
-            } else {
-                $.bar.hello();
-            }
-    });
+const main = require('caf_components');
+try {
+    const $ = await main.load(null, {name: 'bar', env: {msg: 'Bye!'}},
+                              'hello.json', [module]);
+    $.bar.hello();
+} catch (err) {
+    console.log(main.myUtils.errToPrettyStr(err));
+}
 ```
 
-and, before creating the component, `main.load` merges the configuration in the second argument with the contents of `hello.json`.
-
+and the configuration in the second argument merges with the contents of `hello.json`.
 
 ### Hierarchy
 

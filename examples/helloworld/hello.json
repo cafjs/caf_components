@@ -1,6 +1,7 @@
 {
     "module": "./hello",
     "name" : "foo",
+    "description" : "My first component",
     "env" : {
         "msg" : "Hello World!"
     }

@@ -1,15 +1,18 @@
+#!/usr/bin/env node
 'use strict';
 /* eslint-disable  no-console */
 
-var main = require('../../index.js');
+const main = require('../../index.js');
 
-main.load(null, {env: {myLogLevel: 'WARN'}}, 'hello.json', [module],
-          function(err, $) {
-              if (err) {
-                  console.log(main.myUtils.errToPrettyStr(err));
-              } else {
-                  $._.$.log.warn('see this');
-                  $._.$.log.debug('but not this');
-                  $._.$.foo.hello();
-              }
-          });
+(async function() {
+    try {
+        const $ = await main.load(null, {env: {myLogLevel: 'WARN'}},
+                                  'hello.json', [module]);
+        $._.$.log.warn('see this');
+        $._.$.log.debug('but not this');
+        $._.$.foo.hello();
+        await $.top.__ca_shutdown__(null);
+    } catch (err) {
+        console.log(main.myUtils.errToPrettyStr(err));
+    }
+})();

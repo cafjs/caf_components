@@ -2,15 +2,20 @@
 /* eslint-disable  no-console */
 
 exports.newInstance = async function($, spec) {
-    var that = {
+    let isShutdown = false;
+    const that = {
         hello() {
-            console.log(spec.name + ':' + spec.env.msg);
+            !isShutdown && console.log(spec.name + ':' + spec.env.msg);
         },
-        __ca_checkup__(data, cb0) {
-            cb0(null);
+        /* eslint-disable  no-unused-vars */
+        async __ca_checkup__(data) {
+            return isShutdown ? [new Error('Shutdown')] : [];
         },
-        __ca_shutdown__(data, cb0) {
-            cb0(null);
+        /* eslint-disable  no-unused-vars */
+        async __ca_shutdown__(data) {
+            isShutdown = true;
+            $ && ($[spec.name] === that) && delete $[spec.name];
+            return [];
         }
     };
     return [null, that];

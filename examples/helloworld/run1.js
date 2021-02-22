@@ -1,12 +1,14 @@
+#!/usr/bin/env node
 'use strict';
 /* eslint-disable  no-console */
 
-var main = require('../../index.js');
+const main = require('../../index.js');
 
-main.load(null, null, 'hello.json', [module], function(err, $) {
-    if (err) {
-        console.log(main.myUtils.errToPrettyStr(err));
-    } else {
+(async function() {
+    try {
+        const $ = await main.load(null, null, 'hello.json', [module]);
         $.foo.hello();
+    } catch (err) {
+        console.log(main.myUtils.errToPrettyStr(err));
     }
-});
+})();
