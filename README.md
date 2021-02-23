@@ -10,13 +10,19 @@ See https://www.cafjs.com
 
 In `Caf.js` **everything** is built with components.
 
-This library configures and manages a hierarchy of asynchronously created components. Asynchronous constructors allow components to read configuration data from an external service without blocking the main loop.
+This library configures and manages a hierarchy of asynchronously created components. Asynchronous constructors allow components to read configuration data from an external service, such as Redis, without blocking the main loop.
+
+Asynchronous constructors are called serially using a deterministic order. When this ordering respects the natural dependencies between components, an already created component can be used to bootstrap the creation of other components. A clean shut down of the hierarchy reverses that order.
+
+A parent component periodically monitors the health of its children and takes a recovery action if needed. When this recovery action keeps failing, the error bubles up until the process exits. At that point Kubernetes takes control and restarts the container somewhere else.
+
+A description language is used to configure the hierarchy. Templating, linking, parameter passing, and system properties, are used to simplify the creation of complex hierarchies of components. Decoupling configuration from implementation eliminates hard dependencies between components, relying instead on dependency injection with dynamic imports. In `Caf.js` **anything** can be replaced by changing a few lines of JSON.
 
 This library was inspired by the SmartFrog (Java) framework https://en.wikipedia.org/wiki/SmartFrog and Erlang/OTP supervision trees.
 
 ### Hello World
 
-We use JSON to describe components. For example, the file `hello.json` in `examples/helloworld` is:
+We use JSON to describe components. For example, the file `hello.json` in the directory `examples/helloworld` is:
 
 ```
     {
@@ -28,11 +34,12 @@ We use JSON to describe components. For example, the file `hello.json` in `examp
         }
     }
 ```
+where:
 
-- `env` a set of properties to configure the component.
+- `module` an implementation for the component.
 - `name` a key to register the new component in a local context.
 - `description` a comment describing the component.
-- `module` an implementation for the component.
+- `env` a set of properties to configure the component.
 
 Implementations export an asynchronous factory method called `newInstance`. This method takes two arguments, a local context `$` to register the new component, and a configuration map typically derived from the parsed JSON description.
 
@@ -58,7 +65,7 @@ exports.newInstance = async function($, spec) {
 };
 ```
 
-Components always implement two methods:
+Components always implement two asynchronous methods:
 
 - `__ca_checkup__` returns an error if there is something wrong with the component.
 - `__ca_shutdown__` sets the component in a disabled state and removes it from the context. This function should be idempotent and irrecoverable.
@@ -79,9 +86,9 @@ try {
 }
 ```
 
-The method `main.load` is loading and parsing the JSON description, and using that description to instantiate and register a component in the `$` context. Since the first argument, i.e., the initial local context, was `null`, it will create a fresh `$` context.
+The method `main.load` loads and parses the JSON description, and uses that description to instantiate and register a component in the `$` context. Since the first argument, i.e., the initial local context, was `null`, a fresh context will be created.
 
-Why do we need to provide `module`? The method `main.load` needs the directory paths of `hello.json` and `hello.js`, and in this case they are all assumed to be in the same directory. In complex cases an array of `module` objects could provide alternative locations. See {@link module:caf_components/gen_loader} for details.
+Why do we need to provide `module`? The method `main.load` needs the directory paths of `hello.json` and `hello.js`, and in this case they are all assumed to be in the same directory. In a complex setup an array of `module` objects could provide alternative locations for these resources. See {@link module:caf_components/gen_loader} for details.
 
 To create another instance with a different configuration:
 
@@ -96,11 +103,11 @@ try {
 }
 ```
 
-and the configuration in the second argument merges with the contents of `hello.json`.
+and the configuration passed in the second argument will get merged with the contents of `hello.json`.
 
 ### Hierarchy
 
-Let's add a hierarchy of components to `hello.json`:
+Let's create a hierarchy of components. Note that one package can provide factory methods for several components by using the separator `#`. For example, the factory method `newInstance` for `caf_components#supervisor` is found with `require("caf_components").supervisor`.
 
 ```
     {
@@ -132,53 +139,57 @@ Let's add a hierarchy of components to `hello.json`:
     }
 ```
 
-A package can provide factory methods for different component types. We add an access indirection by using the separator `#`. For example, `caf_components#supervisor` is loaded as `require("caf_components").supervisor.newInstance(..)`.
-
-Initialization of a hierarchy is always sequential, respecting array order, and ensuring that a parent component only registers after its children are properly initialized. During shutdown we do the opposite, unregistering the parent component asap, and reversing array order.
+Initialization of a hierarchy is always sequential, respecting array order, and ensuring that a parent component only registers after its children are properly initialized. The exception is the topmost component that is always available. During shutdown we do the opposite, unregistering the parent component asap, and reversing array order.
 
 This means that we can respect initialization dependencies by ordering components in the description. For example, `hello.js` can safely use the logging component at initialization time:
 
 ```
-    exports.newInstance = function($, spec, cb) {
-        $.log.debug('Initializing hello');
-        cb(null, {
-            hello: function() {
-                console.log(spec.name + ':' + spec.env.msg);
-            },
-            __ca_checkup__: function(data, cb0) {
-                cb0(null);
-            },
-            __ca_shutdown__: function(data, cb0) {
-                cb0(null);
-            }
-        });
-    };
-```
-
-What if we have more than two levels? Each parent component (see {@link module:caf_components/gen_container} and {@link module:caf_components/gen_dynamic_container}) creates a fresh `$` context for its children, but it also registers a reference `_` in that context to the top component. This top reference helps them to navigate the hierarchy. For example, we can also refer to the logging component as `$._.$.log` since its parent is the top component.
-
-The calling program is modified slightly to use the top reference:
-
-```
-    const main = require('caf_components');
-    main.load(null, null, 'hello.json', [module], function(err, $) {
-        if (err) {
-            console.log(main.myUtils.errToPrettyStr(err));
-        } else {
-            $._.$.foo.hello(); // or $.top.$.foo.hello()
+exports.newInstance = async function($, spec) {
+    let isShutdown = false;
+    $.log.debug('Initializing hello'); // SAFE!!
+    const that = {
+        hello() {
+            !isShutdown && $.log.debug(spec.name + ':' + spec.env.msg);
+        },
+        async __ca_checkup__(data) {
+            return isShutdown ? [new Error('Shutdown')] : [];
+        },
+        async __ca_shutdown__(data) {
+            isShutdown = true;
+            $ && ($[spec.name] === that) && delete $[spec.name];
+            return [];
         }
-    });
+    };
+    return [null, that];
+};
 ```
 
-The top level supervisor (see {@link module:caf_components/supervisor}) forces components with children to periodically check their health, and take local recovery actions when they fail. When local recovery actions do not work, the failure bubbles up until it reaches the root component. This component typically just logs an error message, and exits the process with an error code. At that point an external recovery mechanism should take over.
+What if there are more than two levels in the hierarchy?
+
+Each parent component (see {@link module:caf_components/gen_container} and {@link module:caf_components/gen_dynamic_container}) creates a fresh `$` context for its children that includes a reference `_` to the topmost component.  Using that reference any component can find the logging component with `$._.$.log`.
+
+The main program is similar but the supervision tree is explicitly shutdown during a clean exit.
+
+```
+const main = require('caf_components');
+try {
+    const $ = await main.load(null, null, 'hello.json', [module]);
+    $.top.$.foo.hello();
+    $._.$.foo.hello(); // same result, `$._` is an alias to `$.top`
+    await $.top.__ca_shutdown__(null);
+} catch (err) {
+    console.log(main.myUtils.errToPrettyStr(err));
+}
+```
+
 
 ### Component Description Transforms
 
-In a cloud deployment scenario the usage model of component descriptions is fairly predictable:
+Most cloud service deployments have a common pattern for component configuration:
 
 1. Start with a base template that defines a standard hierarchy of components for the service.
 2. Modify the template by adding, removing, or patching components.
-3. Create several instances of the modified template by passing different arguments.
+3. Create several instances with the modified template by passing different arguments.
 4. Propagate instance arguments to internal components.
 5. Fill in missing values by reading properties from the environment.
 
@@ -186,8 +197,7 @@ We have already described how to provide instance arguments to `main.load`. Let'
 
 #### Templates
 
-If we want to use the previous `hello.json` description as a template, and swap
-component `foo` by a new component `bar`, we just create a file with name `<fileNameBase>++.json`, i.e., `hello++.json`:
+Assuming the previous `hello.json` description as a template, to swap the component `foo` by a new component `bar` we just create a file with name `<fileNameBase>++.json`, e.g., `hello++.json`, and contents:
 
 ```
     {
@@ -208,17 +218,17 @@ component `foo` by a new component `bar`, we just create a file with name `<file
     }
 ```
 
-and this description merges with the original by following simple rules:
+and this description merges with the template by following a few simple rules:
 
 * Use `name` to identify matching components.
 * Assign `null` to `module` to delete a component.
-* Components like `bar` that do not match existing ones are inserted just after the last changed one, i.e., `foo`.
+* Components like `bar` that do not match existing ones are inserted just after the last one that was accessed, i.e., `foo`.
 
 See {@link module:caf_components/templateUtils} for details.
 
 #### Linking
 
-We want to parameterize descriptions without knowing the configuration details of internal components. Arguments only modify the top level component, and we specify links to properties of this component with the `$._.env.` prefix. For example, in `hello++.json`:
+We want to parameterize descriptions without knowing the internal component structure. Our approach is to just change properties of the top level component with argument passing, and then specify links to properties of this component with the `$._.env.` prefix. For example, in `hello++.json`:
 
 ```
     {
