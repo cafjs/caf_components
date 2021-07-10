@@ -6,7 +6,7 @@ See https://www.cafjs.com
 
 ## Library for Building Caf.js Components
 
-[![Build Status](https://travis-ci.org/cafjs/caf_components.svg?branch=master)](https://travis-ci.org/cafjs/caf_components)
+[![Build Status](https://github.com/cafjs/caf_components/actions/workflows/push.yml/badge.svg)](https://github.com/cafjs/caf_components/actions/workflows/push.yml)
 
 In `Caf.js` **everything** is built with components.
 
